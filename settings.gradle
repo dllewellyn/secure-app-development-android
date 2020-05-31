@@ -1,2 +1,4 @@
 include ':app'
 rootProject.name = "Secure App Development example"
+epoxyVersion = '3.11.0'
+androidSecurityLibrary = "1.0.0-rc02"
