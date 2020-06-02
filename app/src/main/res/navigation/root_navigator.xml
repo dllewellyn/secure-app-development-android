@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto" android:id="@+id/root_navigator"
+        app:startDestination="@id/allPluginsFragment">
+
+
+    <fragment
+            android:id="@+id/locationLocationLocationFragment"
+            android:name="com.dllewellyn.location_lab.LocationLocationLocationFragment"
+            android:label="LocationLocationLocationFragment" />
+    <fragment
+            android:id="@+id/allPluginsFragment"
+            android:name="com.secure.app.dev.AllPluginsFragment"
+            android:label="AllPluginsFragment" >
+        <action
+                android:id="@+id/action_allPluginsFragment_to_locationLocationLocationFragment"
+                app:destination="@id/locationLocationLocationFragment" />
+        <action
+                android:id="@+id/action_allPluginsFragment_to_encryptionLabFragment"
+                app:destination="@id/encryptionLabFragment" />
+    </fragment>
+    <fragment
+            android:id="@+id/encryptionLabFragment"
+            android:name="com.dllewellyn.encryption_lab.EncryptionLabFragment"
+            android:label="EncryptionLabFragment" />
+</navigation>

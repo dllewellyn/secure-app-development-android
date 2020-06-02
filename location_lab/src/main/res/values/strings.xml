@@ -1,0 +1,15 @@
+<resources>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="create_file_title">Click to create a file and see where it goes</string>
+    <string name="private_storage">Use private storage</string>
+    <string name="use_public_storage">Use public storage</string>
+    <string name="select_the_type_of_storage_you_want_to_create">Select the type of storage you want to create</string>
+    <string name="file_name">File name</string>
+    <string name="create">Create</string>
+    <string-array name="options">
+        <item>Shared prefs</item>
+        <item>Room Database</item>
+        <item>File on disk</item>
+    </string-array>
+</resources>

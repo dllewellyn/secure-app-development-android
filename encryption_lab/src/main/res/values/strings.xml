@@ -1,0 +1,17 @@
+<resources>
+    <string name="create_file_title">Click to create a file and see where it goes</string>
+    <string name="private_storage">Use private storage</string>
+    <string name="use_public_storage">Use public storage</string>
+    <string name="select_the_type_of_storage_you_want_to_create">Select the type of storage you want to create</string>
+    <string name="file_name">File name</string>
+    <string name="create">Create</string>
+    <string name="encryption_password">Encryption password</string>
+    <string name="use_keystore_for_encryption">Use keystore for encryption</string>
+    <string name="use_password_for_encryption">Use password for encryption</string>
+    <string name="what_type_of_encryption_key_do_you_want_to_use">What type of encryption key do you want to use?</string>
+    <string-array name="options">
+        <item>Shared prefs</item>
+        <item>Room Database</item>
+        <item>File on disk</item>
+    </string-array>
+</resources>

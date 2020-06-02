@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <style name="AppTheme" parent="Theme.MaterialComponents.Light">
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+        <item name="colorAccent">@color/colorAccent</item>
+    </style>
+    <style name="AppTheme.EditTextTheme" parent="Widget.MaterialComponents.TextInputLayout.FilledBox.Dense">
+    </style>
+
+    <style name="AppTheme.Headline1" parent="TextAppearance.MaterialComponents.Headline1">
+
+    </style>
+
+    <style name="AppTheme.Headline2" parent="TextAppearance.MaterialComponents.Headline2">
+
+    </style>
+
+    <style name="AppTheme.Headline3" parent="TextAppearance.MaterialComponents.Headline3">
+        <item name="android:textSize">24dp</item>
+        <item name="android:fontFamily">@font/fira_sans</item>
+    </style>
+</resources>
