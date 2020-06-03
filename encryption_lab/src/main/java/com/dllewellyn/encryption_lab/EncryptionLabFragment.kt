@@ -1,5 +1,6 @@
 package com.dllewellyn.encryption_lab
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -9,6 +10,7 @@ import android.widget.ArrayAdapter
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
+import com.dllewellyn.common.ViewDataActivity
 import com.dllewellyn.common.bindingadapters.models.DirectoryListController
 import com.dllewellyn.common.models.FileTypes
 import com.dllewellyn.encryption_lab.databinding.FragmentEncryptionLabBinding
@@ -19,7 +21,14 @@ import java.lang.IllegalStateException
 class EncryptionLabFragment : Fragment(), AdapterView.OnItemSelectedListener {
     private val viewModel: EncryptionLabViewModel by viewModel()
     private val controller: DirectoryListController by lazy {
-        DirectoryListController()
+        DirectoryListController {
+            startActivity(
+                Intent(requireContext(), ViewDataActivity::class.java)
+                    .apply {
+                        putExtra("data", it)
+                    }
+            )
+        }
     }
 
     override fun onCreateView(

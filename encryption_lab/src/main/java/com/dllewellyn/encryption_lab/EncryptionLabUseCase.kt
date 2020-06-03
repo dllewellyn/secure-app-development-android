@@ -8,11 +8,13 @@ import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKeys
 import com.dllewellyn.common.room.NotesDatabase
 import com.dllewellyn.common.room.SecureNoteEntity
+import info.guardianproject.iocipher.VirtualFileSystem
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import net.sqlcipher.database.SQLiteDatabase
 import net.sqlcipher.database.SupportFactory
 import java.io.File
+import java.nio.charset.Charset
 import java.security.SecureRandom
 import javax.crypto.SecretKeyFactory
 import javax.crypto.spec.PBEKeySpec
@@ -28,7 +30,12 @@ class EncryptionLabUseCase(private val context: Context) {
             keyFactory.generateSecret(
                 PBEKeySpec(
                     password.toCharArray(),
-                    retrieveOrGeneratePasswordForFile(File(filepath)).toByteArray(),
+                    retrieveOrGeneratePasswordForFile(
+                        File(
+                            basePrivateDirectory,
+                            filepath
+                        )
+                    ).toByteArray(),
                     20000,
                     256
                 )
@@ -63,15 +70,22 @@ class EncryptionLabUseCase(private val context: Context) {
         )
     }
 
-    suspend fun createKeystoreEncryptedRoomDatabase(filename: String, password: String) =
-        Room.databaseBuilder(context, NotesDatabase::class.java, filename).openHelperFactory(
+    suspend fun createKeystoreEncryptedRoomDatabase(filename: String, password: String) {
+
+        if (File(filename).exists()) {
+            File(filename).delete()
+        }
+
+        Room.databaseBuilder(
+            context,
+            NotesDatabase::class.java,
+            File(basePrivateDirectory, filename).path
+        ).openHelperFactory(
             SupportFactory(
                 SQLiteDatabase.getBytes(password.toCharArray())
             )
-        )
-            .build()
-            .notesDao()
-            .insert(SecureNoteEntity(noteText = "Hello world", uid = -1))
+        ).build().notesDao().insert(SecureNoteEntity(noteText = "Hello world", uid = -1))
+    }
 
     fun createEncryptedSharedPrefsAndPopulate(filename: String) {
         createEncryptedSharedPrefs(filename)
@@ -81,19 +95,26 @@ class EncryptionLabUseCase(private val context: Context) {
     }
 
 
-    suspend fun createEncryptedFile(filename: String) = withContext(Dispatchers.IO) {
+    suspend fun createEncryptedFile(filename: String): String = withContext(Dispatchers.IO) {
         if (basePrivateDirectory.exists().not()) {
             basePrivateDirectory.mkdir()
         }
 
+        val file = File(basePrivateDirectory, filename)
+
+        if (file.exists()) {
+            file.delete()
+        }
         createEncryptedFile(
             EncryptedFile.Builder(
-                File(basePrivateDirectory, filename),
+                file,
                 context,
                 MasterKeys.getOrCreate(MasterKeys.AES256_GCM_SPEC),
                 EncryptedFile.FileEncryptionScheme.AES256_GCM_HKDF_4KB
             ).build()
         )
+
+        file.path
     }
 
     private fun createEncryptedSharedPrefs(filename: String) =
@@ -107,9 +128,11 @@ class EncryptionLabUseCase(private val context: Context) {
 
 
     private suspend fun createEncryptedFile(path: EncryptedFile) = withContext(Dispatchers.IO) {
-        path.openFileOutput().use {
-            it.writer().write("Test string")
-        }
+        path.openFileOutput()
+            .writer(Charset.defaultCharset()).apply {
+                write("Test string")
+                close()
+            }
     }
 
 
@@ -120,8 +143,26 @@ class EncryptionLabUseCase(private val context: Context) {
         return Base64.encodeToString(bytes, 0)
     }
 
+    fun createEncryptedFileWithPassword(filename: String, password: String): String {
+
+        val file = File(basePrivateDirectory, filename)
+
+        if (file.exists()) file.delete()
+
+        val generatedPassword = generatePasswordWithPbkf(password, filename)
+
+        VirtualFileSystem.get().apply {
+            createNewContainer(file.path, generatedPassword)
+            mount(file.path, generatedPassword)
+            info.guardianproject.iocipher.File(file.path + "_").writeText("Hello world")
+            unmount()
+        }
+
+        return file.path
+    }
+
     companion object {
-        private const val ENCRYPTION_LAB_DIRECTORY = "encryption_lab";
+        const val ENCRYPTION_LAB_DIRECTORY = "encryption_lab";
     }
 
 }

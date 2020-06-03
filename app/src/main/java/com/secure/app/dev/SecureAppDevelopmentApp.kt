@@ -1,6 +1,8 @@
 package com.secure.app.dev
 
 import android.app.Application
+import com.dllewellyn.common.room.dataScreenModule
+import com.dllewellyn.common.room.filesModule
 import com.dllewellyn.encryption_lab.encryptionLab
 import com.dllewellyn.location_lab.locationLabModule
 import org.koin.android.ext.koin.androidContext
@@ -16,7 +18,7 @@ class SecureAppDevelopmentApp : Application() {
             androidLogger()
             androidContext(this@SecureAppDevelopmentApp)
             modules(
-                locationLabModule + encryptionLab
+                locationLabModule + encryptionLab + filesModule + dataScreenModule
             )
         }
     }

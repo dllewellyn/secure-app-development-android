@@ -10,19 +10,24 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import androidx.room.Room
 import com.dllewellyn.common.models.FileTypes
+import com.dllewellyn.common.room.FilesDao
 import com.dllewellyn.common.room.NotesDatabase
 import com.dllewellyn.common.room.SecureNoteEntity
+import com.dllewellyn.common.room.SingleFileEntity
 import kotlinx.coroutines.launch
 import java.io.File
 import kotlin.random.Random
 
 @Suppress("RECEIVER_NULLABILITY_MISMATCH_BASED_ON_JAVA_ANNOTATIONS")
-class LocationLocationLocationViewModel(private val context: Application) :
+class LocationLocationLocationViewModel(
+    private val context: Application,
+    private val filesDao: FilesDao
+) :
     AndroidViewModel(context) {
 
     val isPrivate = MutableLiveData<Int>()
     val fileName = MutableLiveData<String>()
-    val files = MutableLiveData<List<File>>()
+    val files = MutableLiveData<List<SingleFileEntity>>()
     val typeSelected = MutableLiveData<FileTypes>()
 
     private val basePrivateDirectory: File by lazy {
@@ -42,13 +47,8 @@ class LocationLocationLocationViewModel(private val context: Application) :
         refreshFilesList()
     }
 
-    private fun refreshFilesList() {
-        viewModelScope.launch {
-
-            val privs = basePrivateDirectory.listFiles()?.toList() ?: listOf()
-            val pubs = basePublicDirectory.listFiles()?.toList() ?: listOf()
-            files.postValue(privs + pubs)
-        }
+    private fun refreshFilesList() = viewModelScope.launch {
+        files.postValue(filesDao.getAllForModule(LOCATION_LAB_DIRECTORY))
     }
 
     fun createButtonClicked() {
@@ -87,6 +87,17 @@ class LocationLocationLocationViewModel(private val context: Application) :
         ).build()
             .notesDao()
             .insert(SecureNoteEntity(noteText = "Hello world", uid = -1))
+
+        filesDao.insert(
+            SingleFileEntity(
+                filename,
+                FileTypes.ROOM_DATABASE.s,
+                LOCATION_LAB_DIRECTORY,
+                false
+            )
+        )
+
+        refreshFilesList()
     }
 
     private fun createSharedPrefs() {
@@ -117,6 +128,7 @@ class LocationLocationLocationViewModel(private val context: Application) :
             path.delete();
         }
 
+
         buildString {
             for (i in 0..Random.nextInt(512)) {
                 append(Random.nextInt(256).toChar())
@@ -125,6 +137,14 @@ class LocationLocationLocationViewModel(private val context: Application) :
             path.writeText(this.toString())
         }
 
+        filesDao.insert(
+            SingleFileEntity(
+                path.path,
+                FileTypes.FILE.s,
+                LOCATION_LAB_DIRECTORY,
+                false
+            )
+        )
         refreshFilesList()
     }
 

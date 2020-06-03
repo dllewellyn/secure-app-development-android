@@ -6,20 +6,24 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
+import com.dllewellyn.common.models.EncryptionType
 import com.dllewellyn.common.models.FileTypes
+import com.dllewellyn.common.room.FilesDao
+import com.dllewellyn.common.room.SingleFileEntity
 import kotlinx.coroutines.launch
 import java.io.File
 
 class EncryptionLabViewModel(
     private val context: Application,
-    private val useCase: EncryptionLabUseCase
+    private val useCase: EncryptionLabUseCase,
+    private val filesDao: FilesDao
 ) :
     AndroidViewModel(context) {
 
     val fileName = MutableLiveData<String>()
     val password = MutableLiveData<String>()
     val passwordOrKeystore = MutableLiveData<Int>()
-    val files = MutableLiveData<List<File>>()
+    val files = MutableLiveData<List<SingleFileEntity>>()
     val typeSelected = MutableLiveData<FileTypes>()
 
     val passwordFieldVisibility = MediatorLiveData<Int>().apply {
@@ -49,8 +53,7 @@ class EncryptionLabViewModel(
     }
 
     private fun refreshFilesList() = viewModelScope.launch {
-        val privs = useCase.basePrivateDirectory.listFiles()?.toList() ?: listOf()
-        files.postValue(privs)
+        files.postValue(filesDao.getAllForModule(EncryptionLabUseCase.ENCRYPTION_LAB_DIRECTORY))
     }
 
     fun createButtonClicked() = viewModelScope.launch {
@@ -60,8 +63,10 @@ class EncryptionLabViewModel(
                 when (typeSelected.value) {
                     FileTypes.ROOM_DATABASE -> generateEncryptedDatabaseWithPassword()
 
-                    FileTypes.FILE -> TODO()
-                    FileTypes.SHARED_PREFERENCES -> TODO()
+                    FileTypes.FILE -> createEncryptedFileWithPassword()
+                    FileTypes.SHARED_PREFERENCES -> useCase.createEncryptedSharedPrefsAndPopulate(
+                        requireNotNull(fileName.value)
+                    )
                     null -> throw java.lang.IllegalArgumentException()
                 }
 
@@ -70,25 +75,14 @@ class EncryptionLabViewModel(
             R.id.keystoreEncryption -> {
                 when (typeSelected.value) {
                     FileTypes.ROOM_DATABASE ->
-                        useCase.createKeystoreEncryptedRoomDatabase(
-                            File(useCase.basePrivateDirectory, requireNotNull(fileName.value)).path,
-                            useCase.retrieveOrGeneratePasswordForFile(
-                                File(
-                                    useCase.basePrivateDirectory,
-                                    fileName.value
-                                )
-                            )
-                        )
-
+                        createKeystoreEncryptedPassword()
                     FileTypes.FILE -> {
-                        useCase.createEncryptedFile(requireNotNull(fileName.value))
+                        createEncryptedFile()
                     }
-                    FileTypes.SHARED_PREFERENCES -> {
+                    FileTypes.SHARED_PREFERENCES ->
                         useCase.createEncryptedSharedPrefsAndPopulate(
                             requireNotNull(fileName.value)
                         )
-
-                    }
                     null -> throw IllegalArgumentException()
                 }
             }
@@ -98,11 +92,84 @@ class EncryptionLabViewModel(
         refreshFilesList()
     }
 
+    private fun createEncryptedFileWithPassword() = viewModelScope.launch {
+        val fileName = useCase.createEncryptedFileWithPassword(
+            requireNotNull(
+                fileName.value
+            ), requireNotNull(password.value)
+        )
+
+        filesDao.insert(
+            SingleFileEntity(
+                fileName,
+                FileTypes.FILE.s,
+                EncryptionLabUseCase.ENCRYPTION_LAB_DIRECTORY,
+                true,
+                EncryptionType.PASSWORD.s
+            )
+        )
+
+        refreshFilesList()
+    }
+
+    private suspend fun createEncryptedFile() {
+        val file = useCase.createEncryptedFile(requireNotNull(fileName.value))
+        filesDao.insert(
+            SingleFileEntity(
+                file,
+                FileTypes.FILE.s,
+                EncryptionLabUseCase.ENCRYPTION_LAB_DIRECTORY,
+                true,
+                EncryptionType.KEYSTORE.s
+            )
+        )
+
+
+        refreshFilesList()
+    }
+
+    private suspend fun createKeystoreEncryptedPassword() {
+        useCase.createKeystoreEncryptedRoomDatabase(
+            File(useCase.basePrivateDirectory, requireNotNull(fileName.value)).path,
+            useCase.retrieveOrGeneratePasswordForFile(
+                File(
+                    useCase.basePrivateDirectory,
+                    fileName.value
+                )
+            )
+        )
+
+        filesDao.insert(
+            SingleFileEntity(
+                File(useCase.basePrivateDirectory, requireNotNull(fileName.value)).path,
+                FileTypes.ROOM_DATABASE.s,
+                EncryptionLabUseCase.ENCRYPTION_LAB_DIRECTORY,
+                true,
+                EncryptionType.KEYSTORE.s
+            )
+        )
+
+        refreshFilesList()
+    }
+
     private suspend fun generateEncryptedDatabaseWithPassword() {
         useCase.createKeystoreUserPasswordRoomDatabase(
             requireNotNull(fileName.value),
             requireNotNull(password.value)
         )
+
+        filesDao.insert(
+            SingleFileEntity(
+                File(useCase.basePrivateDirectory, requireNotNull(fileName.value)).path,
+                FileTypes.ROOM_DATABASE.s,
+                EncryptionLabUseCase.ENCRYPTION_LAB_DIRECTORY,
+                true,
+                EncryptionType.PASSWORD.s
+            )
+        )
+
+
+        refreshFilesList()
     }
 
     private fun shouldEnableButton() {

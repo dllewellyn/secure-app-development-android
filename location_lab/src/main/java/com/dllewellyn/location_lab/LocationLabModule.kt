@@ -6,6 +6,6 @@ import org.koin.dsl.module
 val locationLabModule = module {
 
     viewModel {
-        LocationLocationLocationViewModel(get())
+        LocationLocationLocationViewModel(get(), get())
     }
 }

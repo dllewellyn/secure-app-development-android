@@ -7,14 +7,28 @@
         <variable
                 name="path"
                 type="String" />
+
+        <variable
+            name="type"
+            type="String" />
+
+        <variable
+                name="isEncrypted"
+                type="String" />
+
+        <variable
+                name="clickListener"
+                type="android.view.View.OnClickListener" />
     </data>
 
     <androidx.constraintlayout.widget.ConstraintLayout
+            android:onClick="@{clickListener}"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
         <TextView
+                android:id="@+id/path"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@{path}"
@@ -22,5 +36,21 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
 
+        <TextView
+                android:id="@+id/type"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/path"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@{type}" />
+
+        <TextView
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/type"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@{isEncrypted}" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>

@@ -51,6 +51,7 @@ dependencies {
     implementation "com.airbnb.android:epoxy-databinding:$epoxyVersion"
 
     // SQL Xipher
+    implementation 'info.guardianproject.iocipher:IOCipher:0.5@aar'
     implementation 'net.zetetic:android-database-sqlcipher:4.3.0@aar'
     implementation "androidx.sqlite:sqlite:2.0.1"
 
