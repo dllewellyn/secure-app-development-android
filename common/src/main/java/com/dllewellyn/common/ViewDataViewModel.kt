@@ -7,7 +7,9 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import androidx.room.Room
 import androidx.room.RoomDatabase
-import com.dllewellyn.common.decryption.DecryptionUtil
+import com.dllewellyn.common.crypt.DecryptionUtil
+import com.dllewellyn.common.crypt.EncryptedSharedPrefsGenerator
+import com.dllewellyn.common.crypt.SecretKeyGenerator
 import com.dllewellyn.common.models.EncryptionType
 import com.dllewellyn.common.models.FileTypes
 import com.dllewellyn.common.room.NotesDatabase
@@ -20,7 +22,15 @@ import net.sqlcipher.database.SQLiteDatabase
 import net.sqlcipher.database.SupportFactory
 import java.io.File
 
-class ViewDataViewModel(val decryptionUtil: DecryptionUtil, val context: Application) :
+class ViewDataViewModel(
+    val decryptionUtil: DecryptionUtil,
+    val context: Application,
+    val secretKeyGenerator: SecretKeyGenerator = SecretKeyGenerator(
+        EncryptedSharedPrefsGenerator(
+            context
+        )
+    )
+) :
     AndroidViewModel(context) {
 
     lateinit var singleFileEntity: SingleFileEntity
@@ -100,7 +110,7 @@ class ViewDataViewModel(val decryptionUtil: DecryptionUtil, val context: Applica
                 FileTypes.ROOM_DATABASE -> buildEncryptedDatabaseWithPassword(
                     singleFileEntity.path,
                     requireNotNull(
-                        decryptionUtil.generatePasswordWithPbkf(
+                        secretKeyGenerator.generatePasswordWithPbkf(
                             password,
                             singleFileEntity.path
                         )
@@ -110,7 +120,10 @@ class ViewDataViewModel(val decryptionUtil: DecryptionUtil, val context: Applica
                     VirtualFileSystem.get().run {
                         mount(
                             singleFileEntity.path,
-                            decryptionUtil.generatePasswordWithPbkf(password, singleFileEntity.path)
+                            secretKeyGenerator.generatePasswordWithPbkf(
+                                password,
+                                singleFileEntity.path
+                            )
                         )
                         info.guardianproject.iocipher.File(singleFileEntity.path + "_").readText()
                             .also {

@@ -4,7 +4,7 @@ package com.dllewellyn.common.room
 
 import androidx.room.Room
 import com.dllewellyn.common.ViewDataViewModel
-import com.dllewellyn.common.decryption.DecryptionUtil
+import com.dllewellyn.common.crypt.DecryptionUtil
 import org.koin.androidx.viewmodel.dsl.viewModel
 import org.koin.dsl.module
 

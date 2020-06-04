@@ -13,6 +13,7 @@ import com.dllewellyn.common.room.SingleFileEntity
 import kotlinx.coroutines.launch
 import java.io.File
 
+@Suppress("FileUsage")
 class EncryptionLabViewModel(
     private val context: Application,
     private val useCase: EncryptionLabUseCase,
@@ -113,7 +114,7 @@ class EncryptionLabViewModel(
     }
 
     private suspend fun createEncryptedFile() {
-        val file = useCase.createEncryptedFile(requireNotNull(fileName.value))
+        val file = useCase.createEncryptedFileForKeystore(requireNotNull(fileName.value))
         filesDao.insert(
             SingleFileEntity(
                 file,
@@ -129,19 +130,13 @@ class EncryptionLabViewModel(
     }
 
     private suspend fun createKeystoreEncryptedPassword() {
-        useCase.createKeystoreEncryptedRoomDatabase(
-            File(useCase.basePrivateDirectory, requireNotNull(fileName.value)).path,
-            useCase.retrieveOrGeneratePasswordForFile(
-                File(
-                    useCase.basePrivateDirectory,
-                    fileName.value
-                )
-            )
+        val filename = useCase.createEncryptedDatabase(
+            File(useCase.basePrivateDirectory, requireNotNull(fileName.value)).path
         )
 
         filesDao.insert(
             SingleFileEntity(
-                File(useCase.basePrivateDirectory, requireNotNull(fileName.value)).path,
+                filename,
                 FileTypes.ROOM_DATABASE.s,
                 EncryptionLabUseCase.ENCRYPTION_LAB_DIRECTORY,
                 true,
